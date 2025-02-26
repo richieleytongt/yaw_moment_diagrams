@@ -2,7 +2,7 @@
 tic
 clc; clear; close all;
 
-AdigatorRegen = false;
+AdigatorRegen = true;
 %% Car model input parameters (Ingrid Salisbury Thesis)
 
 %geometry and inertia
@@ -90,13 +90,13 @@ auxdata.forcescale      = forcescale;                               %deposit for
 auxdata.paramscale      = paramscale;                               %deposit paramscale into auxdata structure
 
 %non-dimensionalize and store the geometry and inertia
-auxdata.w      = l*lengthscale;                 %1
-auxdata.a      = a*lengthscale;                 %(a/wheelbase)
-auxdata.b      = b*lengthscale;                 %(b/wheelbase)
-auxdata.h      = h*lengthscale;                 %(cg height div by wheelbase)
-auxdata.Af     = Af*lengthscale^2;              %nondimensional frontal area
-auxdata.M      = mass*massscale;                %1
-auxdata.J      = J*lengthscale^2*massscale;     %nondimensional rotational inertia (never used???)
+auxdata.w     = l*lengthscale;                 %1
+auxdata.a     = a*lengthscale;                 %(a/wheelbase)
+auxdata.b     = b*lengthscale;                 %(b/wheelbase)
+auxdata.h     = h*lengthscale;                 %(cg height div by wheelbase)
+auxdata.Af    = Af*lengthscale^2;              %nondimensional frontal area
+auxdata.M     = mass*massscale;                %1
+auxdata.J     = J*lengthscale^2*massscale;     %nondimensional rotational inertia (never used???)
 
 %store aero data
 auxdata.CD    = CD;                   %deposit drag coefficient into auxdata structure
@@ -150,13 +150,13 @@ auxdata.Sx_R      = Sx_R;
 auxdata.Sy_R      = Sy_R;
 
 %withdraw nondimensional terms
-M              = auxdata.M;                     %withdraw nondimensional mass from auxdata structure
-g              = auxdata.g;                     %withdraw nondimensional gravity from auxdata structure
-rho            = auxdata.rho;                   %withdraw nondimensional air density from auxdata structure
-Af             = auxdata.Af;                    %withdraw nondimensional frontal area from auxdata structure
-h              = auxdata.h;                     %withdraw nondimensional cg height from auxdata structure
-a              = auxdata.a;                     %withdraw nondimensional a
-b              = auxdata.b;                     %withdraw nondimensional b
+M   = auxdata.M;                     %withdraw nondimensional mass from auxdata structure
+g   = auxdata.g;                     %withdraw nondimensional gravity from auxdata structure
+rho = auxdata.rho;                   %withdraw nondimensional air density from auxdata structure
+Af  = auxdata.Af;                    %withdraw nondimensional frontal area from auxdata structure
+h   = auxdata.h;                     %withdraw nondimensional cg height from auxdata structure
+a   = auxdata.a;                     %withdraw nondimensional a
+b   = auxdata.b;                     %withdraw nondimensional b
 %% Build 'bounds' Structure
 
 %define state and input scales
@@ -192,10 +192,10 @@ bounds.phase.finalstate.lower   = finalStateLower;
 bounds.phase.finalstate.upper   = finalStateUpper;
 bounds.phase.control.lower      = controlLower;
 bounds.phase.control.upper      = controlUpper;
-bounds.phase.path.lower = [-eps -eps -max_alp -max_k -max_alp -max_k];  %what is a path constraint?
-bounds.phase.path.upper = [+eps +eps +max_alp +max_k +max_alp +max_k];
-bounds.phase.integral.lower = 0;
-bounds.phase.integral.upper = 500;
+bounds.phase.path.lower         = [-eps -eps -max_alp -max_k -max_alp -max_k];
+bounds.phase.path.upper         = [+eps +eps +max_alp +max_k +max_alp +max_k];
+bounds.phase.integral.lower     = 0;
+bounds.phase.integral.upper     = 500;
 
 %% Build 'guess' structure
 
@@ -211,28 +211,14 @@ guess.phase.integral         = 1.0;
 %% Build 'setup' structure
 %name
 setup.name                           = 'YMD car';               %name of the problem
-
-%functions
 setup.functions.continuous           = @BicycleMMMContinuous;   %name of the continuous function
 setup.functions.endpoint             = @BicycleMMMEndpoint;     %name of the endpoint function
-
-%auxdata is to be installed via the loop
-
-%nlp
 setup.nlp.solver                     = 'ipopt'; % 'ipopt'       %default solver: gradient descent algorithm
 setup.nlp.ipoptoptions.linear_solver = 'ma57';                  %not default, why?
 setup.nlp.ipoptoptions.maxiterations = 2000;                    %default value
-
-%method
 setup.method                         = 'RPM-Differentiation';   %default method
-
-%bounds
 setup.bounds                         = bounds;                  %deposit bounds structure into setup structure
-
-%guess
 setup.guess                          = guess;                   %deposit guess structure into setup structure
-
-%derivatives
 setup.derivatives.supplier           = 'adigator';              %not default, why? Finds
 if AdigatorRegen == false
     setup.adigatorgrd.continuous     = @BicycleMMMContinuousADiGatorGrd;
@@ -242,11 +228,7 @@ if AdigatorRegen == false
 end
 setup.derivatives.dependencies       = 'sparseNaN';             %default
 setup.derivatives.derivativelevel    = 'second';                %'snopt' -> 'first' (automatic)
-
-%scales
 setup.scales.method                  = 'automatic-bounds';      %comment out if no scaling either scaled yourself or properly scaled
-
-%mesh
 setup.mesh.method                    = 'hp-PattersonRao';       %default
 setup.mesh.tolerance                 = 1.0e-5;                  %maximum relative error over all the segments
 setup.mesh.colpointsmin              = 4;                       %
@@ -439,13 +421,13 @@ for kk = 1:length(deltaRef)
     MzMesh(kk,:)    = Mz'.*ii(2:end-1);
 
 
-    %
+    
     figure(1)       %'Solution residue'
     hold on
     plot(AyV,TsT,'k')
     plot(AyV,ii(2:end-1),'r')
     grid minor
-    %
+    
     figure(2)       %Yaw moment diagram
     hold on
     if deltaRef(kk) > 0
@@ -471,44 +453,44 @@ for kk = 1:length(deltaRef)
             end
         end
 
-    figure(30)      %'Front tyre normal load (N)'
+    figure(3)      %'Front tyre normal load (N)'
     hold on
     plot(AyV(i1:i2),Ffz(i1:i2)/forcescale,'k','LineWidth',1.5)
     plot(ay(i1:i2),Ffz(i1:i2)/forcescale,'r','LineWidth',1.5)
 
-    figure(40)      %'Rear tyre normal load (N)'
+    figure(4)      %'Rear tyre normal load (N)'
     hold on
     plot(AyV(i1:i2),Frz(i1:i2)/forcescale,'k','LineWidth',1.5)
 
-    figure(3)       %'Front wheel slip angle (deg)'
+    figure(5)       %'Front wheel slip angle (deg)'
     hold on
     plot(AyV(i1:i2),alp_f(i1:i2)*180/pi,'k','LineWidth',1.5)
 
-    figure(4)       %'Rear wheel slip angle (deg)'
+    figure(6)       %'Rear wheel slip angle (deg)'
     hold on
     plot(AyV(i1:i2),alp_r(i1:i2)*180/pi,'k','LineWidth',1.5)
 
-    figure(5)       %'Front wheel longitudinal slip'
+    figure(7)       %'Front wheel longitudinal slip'
     hold on
     plot(AyV(i1:i2),kf(i1:i2),'k','LineWidth',1.5)
 
-    figure(6)       %'Rear wheel longitudinal slip'
+    figure(8)       %'Rear wheel longitudinal slip'
     hold on
     plot(AyV(i1:i2),kr(i1:i2),'k','LineWidth',1.5)
 
-    figure(7)       %'Front wheel side force (N)'
+    figure(9)       %'Front wheel side force (N)'
     hold on
     plot(AyV(i1:i2),Ffy(i1:i2)/forcescale,'k','LineWidth',1.5)
 
-    figure(8)       %'Rear wheel side force (N)
+    figure(10)       %'Rear wheel side force (N)
     hold on
     plot(AyV(i1:i2),Fry(i1:i2)/forcescale,'k','LineWidth',1.5)
 
-    figure(9)       %'Side slip angle (deg)'
+    figure(11)       %'Side slip angle (deg)'
     hold on
     plot(AyV(i1:i2),beta(i1:i2)*180/pi,'k','LineWidth',1.5)
 
-    figure(10)      %Beta diagram
+    figure(12)      %Beta diagram
     hold on
     if deltaRef(kk) > 0
         plot(beta(i1:i2)*180/pi,Mz(i1:i2),'r','LineWidth',1.5)
@@ -526,19 +508,20 @@ for kk = 1:length(deltaRef)
     StabDeriv   = b*Cr.*(1 - (omega*b - V*sin(beta)).*sin(beta)./V./cos(beta).^2).*(1+(atan2(omega*b-V*sin(beta),V*cos(beta))).^2)...
     - a*Cf.*(1 + (omega*a+V*sin(beta)).*sin(beta)./V./cos(beta).^2).*(1+(atan2(omega*a+V*sin(beta),V*cos(beta))).^2)*cos(delta);
 
-    figure(100)     %'Front tire cornering stiffness'
+    figure(13)     %'Front tire cornering stiffness'
     hold on
     plot(AyV(i1:i2),Cf(i1:i2),'k','LineWidth',1.5)
-    figure(101)
+
+    figure(14)   % 'Rear tire cornering stiffness'
     hold on
     plot(AyV(i1:i2),Cr(i1:i2),'k','LineWidth',1.5)
 
     eta = (b*Cr-a*Cf)*M*g/(a+b);
-    figure(102)     %'Understeer coefficient'
+    figure(15)     %'Understeer coefficient'
     hold on
     plot(AyV(i1:i2),eta(i1:i2),'k','LineWidth',1.5)
 
-    figure(11)      %'Control derivative'
+    figure(16)      %'Control derivative'
     hold on
     if deltaRef(kk) > 0
         plot(AyV(i1:i2),ConDerv(i1:i2),'r','LineWidth',1.5)
@@ -548,7 +531,7 @@ for kk = 1:length(deltaRef)
         plot(AyV(i1:i2),ConDerv(i1:i2),'k','LineWidth',1.5)
     end
 
-    figure(12)      %'Stability derivative'
+    figure(17)      %'Stability derivative'
     hold on
     if deltaRef(kk) > 0
         plot(AyV(i1:i2),StabDeriv(i1:i2),'r','LineWidth',1.5)
@@ -559,7 +542,7 @@ for kk = 1:length(deltaRef)
     end
 
     YDD = -(a^2.*Cf+b^2.*Cr)/V;
-    figure(13)      %???
+    figure(18)      %yaw damping
     hold on
     if deltaRef(kk) > 0
         plot(AyV(i1:i2),YDD(i1:i2),'r','LineWidth',1.5)
@@ -602,84 +585,70 @@ for kj = 1:length(betaRef)
     end
 end
 
-figure(30)
+figure(3)
 xlim([xmin xmax])
 xlabel('Lateral acceleration (G)');
 ylabel('Front tyre normal load (N)');
 grid minor
 box on
-figure(40)
+
+figure(4)
 xlim([xmin xmax])
 xlabel('Lateral acceleration (G)');
 ylabel('Rear tyre normal load (N)');
 grid minor
 box on
 
-figure(100)
-xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Front tyre cornering stiffness');
-grid minor
-box on
-
-
-figure(101)
-xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Rear tyre cornering stiffness');
-grid minor
-box on
-
-figure(102)
-xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Understeer coefficient');
-grid minor
-box on
-
-figure(3)
-xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Front wheel slip angle (deg)');
-box on
-grid minor
-figure(4)
-xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Rear wheel slip angle (deg)');
-box on
-grid minor
 figure(5)
 xlim([xmin xmax])
 xlabel('Lateral acceleration (G)');
 ylabel('Front wheel longitudinal slip');
 box on
 grid minor
+
 figure(6)
 xlim([xmin xmax])
 xlabel('Lateral acceleration (G)');
-ylabel('Rear wheel lonmgitudinal slip');
+ylabel('Rear wheel longitudinal slip');
 box on
 grid minor
+
 figure(7)
+xlim([xmin xmax])
+xlabel('Lateral acceleration (G)');
+ylabel('Front wheel slip angle (deg)');
+box on
+grid minor
+
+figure(8)
+xlim([xmin xmax])
+xlabel('Lateral acceleration (G)');
+ylabel('Rear wheel slip angle (deg)');
+box on
+grid minor
+
+figure(9)
 xlim([xmin xmax])
 xlabel('Lateral acceleration (G)');
 ylabel('Front wheel side force (N)');
 box on
 grid minor
-figure(8)
+
+figure(10)
 xlim([xmin xmax])
 xlabel('Lateral acceleration (G)');
 ylabel('Rear wheel side force (N)');
 box on
 grid minor
-figure(9)
+
+figure(11)
 xlim([xmin xmax])
 xlabel('Lateral acceleration (G)');
 ylabel('Side slip angle (deg)');
 box on
 grid minor
-figure(10)
+
+figure(12)
 hold on
 % xlim([beta(i1)*180/pi beta(i2)*180/pi]);
 xlim([betaRef(1) betaRef(end)]);
@@ -687,18 +656,49 @@ xlabel('Side slip angle (deg)');
 ylabel('Normaled yaw moment');
 box on
 grid minor
-figure(11)
+
+figure(13)
+xlim([xmin xmax])
+xlabel('Lateral acceleration (G)');
+ylabel('Front tyre cornering stiffness');
+grid minor
+box on
+
+figure(14)
+xlim([xmin xmax])
+xlabel('Lateral acceleration (G)');
+ylabel('Rear tyre cornering stiffness');
+grid minor
+box on
+
+figure(15)
+xlim([xmin xmax])
+xlabel('Lateral acceleration (G)');
+ylabel('Understeer coefficient');
+grid minor
+box on
+
+figure(16)
 xlim([xmin xmax])
 xlabel('Lateral acceleration (G)');
 ylabel('Control derivative');
 box on
 grid minor
-figure(12)
+
+figure(17)
 xlim([xmin xmax])
 xlabel('Lateral acceleration (G)');
 ylabel('Stability derivative');
 box on
 grid minor
+
+figure(18)
+xlim([xmin xmax])
+xlabel('Lateral acceleration (G)');
+ylabel('Yaw damping derivative');
+box on
+grid minor
+
 
 %timing
 elapsedTime = toc;

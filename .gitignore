@@ -1,0 +1,6 @@
+# Exclude all AdiGator files
+*ADiGator*
+
+# Everything else
+*.asv
+*.txt
