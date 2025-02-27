@@ -6,7 +6,7 @@ This program demonstrates via a bicycle model how optimal control can be used to
 This method has significant advantages over traditional point-by-point calculation techniques.
 
 ## Features:
-* A simple tire combined slip tire model
+* A simple combined slip tire model
 * Several additional outputs including stability, and yaw-damping derivatives.
 
 ## How to use:
