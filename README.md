@@ -10,18 +10,19 @@ This method has significant advantages over traditional point-by-point calculati
 * Several additional outputs including stability, and yaw-damping derivatives.
 
 ## How to use:
-* The code is run from BicycleMMMMain.m
-* BicycleMMMDAE.m has most of the relevant dynamic equations.
-* BicycleMMMContinuous.m predominantly hosts BicycleMMMDAE.m
-* BicycleMMMEndpoint.m sets the objective function.
-* DFyAlf provides the instantaneous cornering stiffness of a tire with a slip input.
+* The code is run from BicycleYMDMain.m
+* BicycleYMDDAE.m has most of the relevant dynamic equations.
+* BicycleYMDContinuous.m predominantly hosts BicycleYMDDAE.m
+* BicycleYMDEndpoint.m sets the objective to minimize.
+* DFyAlf.m provides the instantaneous cornering stiffness of a tire with a slip input.
 * [GPOPS-II](https://www.gpops2.com/) must be installed to solve the optimal control problem.
-  * Please refer to the user manual available on their website for information about how the optimal control problem is configured.
-* [ADiGator](https://github.com/matt-weinstein/adigator) must also be installed for calculations of the derivative files.
+  * For information about configuring the optimal control problem, please refer to the user manual available on their website.
+* [ADiGator](https://github.com/matt-weinstein/adigator) must also be installed to calculate the derivative files.
 
 ## Information
-* Extensive information and references can be found in the paper published
+* Extensive information and references can be found in our paper published in Vehicle System Dynamics
 
-## Acknowledgements
+## Authors
 * [Professor David JN Limebeer](https://scholar.google.com/citations?user=FaVnBlIAAAAJ&hl=en&oi=sra)
+* Myself
 * [Professor Matteo Massaro](https://scholar.google.it/citations?user=4-tQq6cAAAAJ&hl=en)
