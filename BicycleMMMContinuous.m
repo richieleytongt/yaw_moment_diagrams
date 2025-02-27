@@ -10,7 +10,7 @@ U               = input.phase(1).control;
 
 phaseout.dynamics       = dynamics;
 phaseout.path           = path;
-phaseout.integrand(:,1) = R1.^2 + R2.^2 + 1.0e-2.*(U(:,1).^2 + U(:,2).^2 + U(:,3).^2);
+phaseout.integrand(:,1) = R1.^2 + R2.^2 + 1.0e-2.*(U(:,1).^2 + U(:,2).^2 + U(:,3).^2); %(Eq: 14)
 
 
 

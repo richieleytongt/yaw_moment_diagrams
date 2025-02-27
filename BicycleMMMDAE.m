@@ -6,7 +6,6 @@ function [dynamics,path,R1,R2] = BicycleMMMDAE(ay,x,U,data)
 eps             = data.eps;
 
 %withdraw geometry and inertia parameters from data
-w               = data.w; %wheelbase
 a               = data.a;
 b               = data.b;
 h               = data.h;
@@ -65,8 +64,8 @@ Sy_R           = data.Sy_R;
 
 % The States
 beta       		= x(:,1);
-k_f             = x(:,2); %[max front tire slip ratio constraint]
-k_r             = x(:,3); %[max rear tire slip ratio constraint]
+k_f             = x(:,2);
+k_r             = x(:,3);
 
 % The Controls
 dbeta       = U(:,1);
@@ -78,20 +77,20 @@ Frz         = U(:,5);
 %% Calculations
 
 % Project velocities
-u           = V.*cos(beta);
-v           = V.*sin(beta);
-R           = (V.^2 + sqrt(V.^4 - 4*k^2*ay.^2))./(2*cos(phi).*sqrt(ay.^2 + eps));
-omega       = -sqrt(sqrt(ay.^2 + eps)./R./cos(phi)).*2/pi.*atan(1000*(ay+eps));
-omega_Bz    = omega.*R.*cos(phi).^2./sqrt(R.^2.*cos(phi).^2 + k.^2);
+u           = V.*cos(beta); %(Eq: 19)
+v           = V.*sin(beta); %(Eq: 19)
+R           = (V.^2 + sqrt(V.^4 - 4*k^2*ay.^2))./(2*cos(phi).*sqrt(ay.^2 + eps)); %rho in the paper (Eq: 27)
+omega       = -sqrt(sqrt(ay.^2 + eps)./R./cos(phi)).*2/pi.*atan(1000*(ay+eps)); %(Eq: 27)
+omega_Bz    = omega.*R.*cos(phi).^2./sqrt(R.^2.*cos(phi).^2 + k.^2); %(Eq: 35)
 
 % rear and front slip angles
-alp_f   = atan2(v+omega_Bz.*a,u) - delta;   %[max front slip angle constraint]
-alp_r   = atan2(v-omega_Bz.*b,u);           %[max rear slip angle constraint]
+alp_f   = atan2(v+omega_Bz.*a,u) - delta;   %(Eq: 41)
+alp_r   = atan2(v-omega_Bz.*b,u);           %(Eq: 40)
 
 % Compute aerodynamic forces and moments
-Fax 	= 0.5*rho*Af*CD.*u.^2;
-Fay 	= 0.5*rho*Af*CS.*u.^2;      
-Faz 	= 0.5*rho*Af*CL.*u.^2;
+Fax 	= 0.5*rho*Af*CD.*u.^2;    %(Eq: 46)
+Fay 	= 0.5*rho*Af*CS.*u.^2;    %(Eq: 47)
+Faz 	= 0.5*rho*Af*CL.*u.^2;    %(Eq: 48)
 
 % front right tyre force calculation
 muxmaxf = (Ffz - Fz1_F).*(muxmax2_F-muxmax1_F)./(Fz2_F-Fz1_F) + muxmax1_F;
@@ -119,31 +118,31 @@ muyr    = muymaxr.*sin(Qy_R.*atan(Sy_R.*rhor));
 Frx     = muxr.*Frz.*knr./rhor;
 Fry     = muyr.*Frz.*alpnr./rhor;
 
-% Gravitational accelerations
+% Gravitational accelerations (Eq: 36)
 Gx      = -g./sqrt(cos(phi)^2.*R.^2+k^2).*(R.*sin(beta).*sin(2*phi)/2 - k*cos(beta));
 Gy      = g./sqrt(cos(phi)^2.*R.^2+k^2).*(R.*cos(beta).*sin(2*phi)/2 - k*sin(beta));
 Gz      = g./sqrt(cos(phi)^2.*R.^2+k^2).*(R.*cos(phi)^2);
 
-% Lateral accelerations
+% Lateral accelerations (Eq: 37)
 AxB     =   ay.*cos(phi).*sin(beta);
 AyB     =   -ay.*cos(phi).*cos(beta);
 AzB     =   ay.*sin(phi);
 
 % Force balance equations
-Fx 		= cos(delta).*Ffx - sin(delta).*Ffy + Frx + M*Gx - Fax; 
-Fy 		= cos(delta).*Ffy + sin(delta).*Ffx + Fry + M*Gy + Fay;
-Fz 		= Frz + Ffz + M*Gz + Faz + AzB; %[vertical force constraint]
+Fx 		= cos(delta).*Ffx - sin(delta).*Ffy + Frx + M*Gx - Fax;      %(Eq: 44)
+Fy 		= cos(delta).*Ffy + sin(delta).*Ffx + Fry + M*Gy + Fay;      %(Eq: 45)
+Fz 		= Frz + Ffz + M*Gz + Faz + AzB; %[vertical force constraint]  (Eq: 49)
 
 % Pitch moment
-My 		= a.*Ffz - b.*Frz - h.*Fx; %[pitch moment constraint]
+My 		= a.*Ffz - b.*Frz - h.*Fx; %[pitch moment constraint] (Eq: 50)
 
 
 %% Outputs
 
-dynamics   = [dbeta,dk_f,dk_r];            %derivative of state vector (dynamics)
-path       = [Fz,My,alp_r,k_r,alp_f,k_f];  %constraint vector (path)
-R1         = ax.*cos(beta) - AxB - Fx./M;
-R2 	       = ax.*sin(beta) - AyB - Fy./M;
+dynamics   = [dbeta,dk_f,dk_r];            %derivative of state vector
+path       = [Fz,My,alp_r,k_r,alp_f,k_f];  %constraint vector
+R1         = ax.*cos(beta) - AxB - Fx./M;  %(Eq: 42)
+R2 	       = ax.*sin(beta) - AyB - Fy./M;  %(Eq: 43)
 
 
 end

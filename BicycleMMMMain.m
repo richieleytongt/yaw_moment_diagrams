@@ -6,7 +6,7 @@ AdigatorRegen = true;
 %% Car model input parameters (Ingrid Salisbury Thesis)
 
 %geometry and inertia
-l = 3.4;                      %wheelbase (m)
+w = 3.4;                      %wheelbase (m)
 a = 1.6;                      %distance from cg to front axle (m)
 b = 1.8;                      %distance from cg to rear axle (m)
 h = 0.35;                     %cg height (m)
@@ -69,57 +69,57 @@ Sy_R      = pi./2./atan(Qy_R);
 eps = 1.0e-4;
 %% Build 'auxdata' Structure
 
-auxdata.eps 			= eps;                                      %deposit a number close to 0? to auxdata structure, only used once
+auxdata.eps 			= eps;
 
 %define the scale factors
-lengthscale             = 1/l;                                      %inverse wheelbase (1/m)
-massscale               = 1/mass;                                   %inverse mass (1/kg)
-timescale               = sqrt(g/l);                                %(1/s)
-velocityscale           = lengthscale/timescale;                    %(s/m)
-accscale                = lengthscale/timescale^2;                  %(s^2/m)
-forcescale              = massscale*lengthscale/timescale^2;        %(1/N)
-powerscale              = forcescale*velocityscale;                 %(s/N*m)
-diffscale               = massscale*lengthscale^2/timescale;        %(s^2/kg*m)
-paramscale              = massscale/timescale^2;                    %(s^2/kg)
+lengthscale             = 1/w; 
+massscale               = 1/mass;
+timescale               = sqrt(g/w);
+velocityscale           = lengthscale/timescale; 
+accscale                = lengthscale/timescale^2;
+forcescale              = massscale*lengthscale/timescale^2;
+powerscale              = forcescale*velocityscale;
+diffscale               = massscale*lengthscale^2/timescale; 
+paramscale              = massscale/timescale^2; 
 
 %store the scale factors
-auxdata.lengthscale     = lengthscale;                              %deposit lengthscale into auxdata structure
-auxdata.massscale       = massscale;                                %deposit massscale into auxdata structure
-auxdata.timescale       = timescale;                                %deposit timescale into auxdata structure
-auxdata.forcescale      = forcescale;                               %deposit forcescale into auxdata strucutre
-auxdata.paramscale      = paramscale;                               %deposit paramscale into auxdata structure
+auxdata.lengthscale     = lengthscale;
+auxdata.massscale       = massscale;
+auxdata.timescale       = timescale;
+auxdata.forcescale      = forcescale;
+auxdata.paramscale      = paramscale;
 
 %non-dimensionalize and store the geometry and inertia
-auxdata.w     = l*lengthscale;                 %1
-auxdata.a     = a*lengthscale;                 %(a/wheelbase)
-auxdata.b     = b*lengthscale;                 %(b/wheelbase)
-auxdata.h     = h*lengthscale;                 %(cg height div by wheelbase)
-auxdata.Af    = Af*lengthscale^2;              %nondimensional frontal area
-auxdata.M     = mass*massscale;                %1
-auxdata.J     = J*lengthscale^2*massscale;     %nondimensional rotational inertia (never used???)
+auxdata.w     = w*lengthscale;
+auxdata.a     = a*lengthscale;
+auxdata.b     = b*lengthscale;
+auxdata.h     = h*lengthscale;
+auxdata.Af    = Af*lengthscale^2;
+auxdata.M     = mass*massscale;
+auxdata.J     = J*lengthscale^2*massscale;
 
 %store aero data
-auxdata.CD    = CD;                   %deposit drag coefficient into auxdata structure
-auxdata.CS    = CS;                   %deposit sideforce coefficient into auxdata structure
-auxdata.CL    = CL;                   %deposit lift coefficient into auxdata structure
+auxdata.CD    = CD;
+auxdata.CS    = CS;
+auxdata.CL    = CL;
 
 %non-dimensionalize and store planetary parameters
-auxdata.g      = g*accscale;                    %1
-auxdata.rho    = rho*massscale/lengthscale^3;   %nondimensional air density
+auxdata.g      = g*accscale;
+auxdata.rho    = rho*massscale/lengthscale^3;
 
 %store road profile
-auxdata.k      = k;                             %deposit road inclination into auxdata structure
-auxdata.phi    = phi;                           %road banking (negative left NASCAR friendly)
+auxdata.k      = k;
+auxdata.phi    = phi;
 
 %non-dimensionalize and store motion characteristics
-auxdata.V      = V*velocityscale;               %deposit nondimensional speed into auxdata structure
-auxdata.ax     = ax*accscale;                   %deposit nondimensional acceleration into auxdata structure
-auxdata.s0     = s0;      %deposit negative lateral acceleration guess into auxdata structure
-auxdata.sf     = sf;      %deposit positive lateral acceleration guess into auxdata structure
+auxdata.V      = V*velocityscale;
+auxdata.ax     = ax*accscale;
+auxdata.s0     = s0;
+auxdata.sf     = sf;
 
 %non-dimensionalize and store front tire data
-auxdata.Fz1_F     = Fz1_F*massscale*lengthscale/timescale^2;
-auxdata.Fz2_F     = Fz2_F*massscale*lengthscale/timescale^2;
+auxdata.Fz1_F     = Fz1_F*forcescale;
+auxdata.Fz2_F     = Fz2_F*forcescale;
 auxdata.muxmax1_F = muxmax1_F;
 auxdata.muxmax2_F = muxmax2_F;
 auxdata.kmax1_F   = kmax1_F;
@@ -134,8 +134,8 @@ auxdata.Sx_F      = Sx_F;
 auxdata.Sy_F      = Sy_F;
 
 %non-dimensionalize and store rear tire data
-auxdata.Fz1_R     = Fz1_R*massscale*lengthscale/timescale^2;
-auxdata.Fz2_R     = Fz2_R*massscale*lengthscale/timescale^2;
+auxdata.Fz1_R     = Fz1_R*forcescale;
+auxdata.Fz2_R     = Fz2_R*forcescale;
 auxdata.muxmax1_R = muxmax1_R;
 auxdata.muxmax2_R = muxmax2_R;
 auxdata.kmax1_R   = kmax1_R;
@@ -214,12 +214,12 @@ setup.name                           = 'YMD car';               %name of the pro
 setup.functions.continuous           = @BicycleMMMContinuous;   %name of the continuous function
 setup.functions.endpoint             = @BicycleMMMEndpoint;     %name of the endpoint function
 setup.nlp.solver                     = 'ipopt'; % 'ipopt'       %default solver: gradient descent algorithm
-setup.nlp.ipoptoptions.linear_solver = 'ma57';                  %not default, why?
+setup.nlp.ipoptoptions.linear_solver = 'ma57';                  
 setup.nlp.ipoptoptions.maxiterations = 2000;                    %default value
 setup.method                         = 'RPM-Differentiation';   %default method
 setup.bounds                         = bounds;                  %deposit bounds structure into setup structure
 setup.guess                          = guess;                   %deposit guess structure into setup structure
-setup.derivatives.supplier           = 'adigator';              %not default, why? Finds
+setup.derivatives.supplier           = 'adigator';              
 if AdigatorRegen == false
     setup.adigatorgrd.continuous     = @BicycleMMMContinuousADiGatorGrd;
     setup.adigatorgrd.endpoint       = @BicycleMMMEndpointADiGatorGrd;
@@ -231,7 +231,7 @@ setup.derivatives.derivativelevel    = 'second';                %'snopt' -> 'fir
 setup.scales.method                  = 'automatic-bounds';      %comment out if no scaling either scaled yourself or properly scaled
 setup.mesh.method                    = 'hp-PattersonRao';       %default
 setup.mesh.tolerance                 = 1.0e-5;                  %maximum relative error over all the segments
-setup.mesh.colpointsmin              = 4;                       %
+setup.mesh.colpointsmin              = 4;                       
 setup.mesh.colpointsmax              = 15;
 setup.mesh.maxiterations             = 20; % max refinements
 Numsec                               = 20;
