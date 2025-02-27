@@ -1,4 +1,4 @@
-function output = BicycleMMMEndpoint(input)
+function output = BicycleYMDEndpoint(input)
 %input is defined behind closed doors but we are told it contains the
 %following sub-structures: 'phase', 'auxdata', 'parameters'
 

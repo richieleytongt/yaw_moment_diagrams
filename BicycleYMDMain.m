@@ -211,8 +211,8 @@ guess.phase.integral         = 1.0;
 %% Build 'setup' structure
 %name
 setup.name                           = 'YMD car';               %name of the problem
-setup.functions.continuous           = @BicycleMMMContinuous;   %name of the continuous function
-setup.functions.endpoint             = @BicycleMMMEndpoint;     %name of the endpoint function
+setup.functions.continuous           = @BicycleYMDContinuous;   %name of the continuous function
+setup.functions.endpoint             = @BicycleYMDEndpoint;     %name of the endpoint function
 setup.nlp.solver                     = 'ipopt'; % 'ipopt'       %default solver: gradient descent algorithm
 setup.nlp.ipoptoptions.linear_solver = 'ma57';                  
 setup.nlp.ipoptoptions.maxiterations = 2000;                    %default value
@@ -221,10 +221,10 @@ setup.bounds                         = bounds;                  %deposit bounds 
 setup.guess                          = guess;                   %deposit guess structure into setup structure
 setup.derivatives.supplier           = 'adigator';              
 if AdigatorRegen == false
-    setup.adigatorgrd.continuous     = @BicycleMMMContinuousADiGatorGrd;
-    setup.adigatorgrd.endpoint       = @BicycleMMMEndpointADiGatorGrd;
-    setup.adigatorhes.continuous     = @BicycleMMMContinuousADiGatorHes;
-    setup.adigatorhes.endpoint       = @BicycleMMMEndpointADiGatorHes;
+    setup.adigatorgrd.continuous     = @BicycleYMDContinuousADiGatorGrd;
+    setup.adigatorgrd.endpoint       = @BicycleYMDEndpointADiGatorGrd;
+    setup.adigatorhes.continuous     = @BicycleYMDContinuousADiGatorHes;
+    setup.adigatorhes.endpoint       = @BicycleYMDEndpointADiGatorHes;
 end
 setup.derivatives.dependencies       = 'sparseNaN';             %default
 setup.derivatives.derivativelevel    = 'second';                %'snopt' -> 'first' (automatic)

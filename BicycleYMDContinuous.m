@@ -1,4 +1,4 @@
-function phaseout = BicycleMMMContinuous(input)
+function phaseout = BicycleYMDContinuous(input)
 %input is a structure that is defined behind closed doors. We are told that
 %it contains the following sub-structures: 'phase' and 'auxdata'
 
@@ -6,7 +6,7 @@ ay              = input.phase(1).time;
 x               = input.phase(1).state;
 U               = input.phase(1).control;
 
-[dynamics,path,R1,R2] = BicycleMMMDAE(ay,x,U,input.auxdata);
+[dynamics,path,R1,R2] = BicycleYMDDAE(ay,x,U,input.auxdata);
 
 phaseout.dynamics       = dynamics;
 phaseout.path           = path;

@@ -1,4 +1,4 @@
-function [dynamics,path,R1,R2] = BicycleMMMDAE(ay,x,U,data)
+function [dynamics,path,R1,R2] = BicycleYMDDAE(ay,x,U,data)
 %[dynamics,path,R1,R2] = BicycleMMMDAE(ay,x,U,data)
 
 %% Withdrawing inputs
