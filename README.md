@@ -17,6 +17,7 @@ This method has significant advantages over traditional point-by-point calculati
 * DFyAlf provides the instantaneous cornering stiffness of a tire with a slip input.
 * [GPOPS-II](https://www.gpops2.com/) must be installed to solve the optimal control problem.
   * Please refer to the user manual available on their website for information about how the optimal control problem is configured.
+* [ADiGator](https://github.com/matt-weinstein/adigator) must also be installed for calculations of the derivative files.
 
 ## Information
 * Extensive information and references can be found in the paper published
