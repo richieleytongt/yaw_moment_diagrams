@@ -1,4 +1,7 @@
 # yaw_moment_diagrams
+
+![Screenshot](YMD.png)
+
 This code calculates the yaw moment and beta diagrams for a bicycle model on a 3d track.
 
 ## Explained:
