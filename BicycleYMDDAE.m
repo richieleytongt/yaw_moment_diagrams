@@ -1,5 +1,4 @@
 function [dynamics,path,R1,R2] = BicycleYMDDAE(ay,x,U,data)
-%[dynamics,path,R1,R2] = BicycleMMMDAE(ay,x,U,data)
 
 %% Withdrawing inputs
 %car model parameters
@@ -29,38 +28,6 @@ phi 			= data.phi;
 V               = data.V;
 ax              = data.ax;
 delta           = data.delta;
-
-%withdraw front tire parameters from data
-Fz1_F          = data.Fz1_F;
-Fz2_F          = data.Fz2_F; 
-muxmax1_F      = data.muxmax1_F;
-muxmax2_F      = data.muxmax2_F;
-kmax1_F        = data.kmax1_F;
-kmax2_F        = data.kmax2_F;
-muymax1_F      = data.muymax1_F;
-muymax2_F      = data.muymax2_F;
-alpmax1_F      = data.alpmax1_F;
-alpmax2_F      = data.alpmax2_F;
-Qx_F           = data.Qx_F;
-Qy_F           = data.Qy_F;
-Sx_F           = data.Sx_F;
-Sy_F           = data.Sy_F;
-
-%withdraw rear tire parameters from data
-Fz1_R          = data.Fz1_R;
-Fz2_R          = data.Fz2_R; 
-muxmax1_R      = data.muxmax1_R;
-muxmax2_R      = data.muxmax2_R;
-kmax1_R        = data.kmax1_R;
-kmax2_R        = data.kmax2_R;
-muymax1_R      = data.muymax1_R;
-muymax2_R      = data.muymax2_R;
-alpmax1_R      = data.alpmax1_R;
-alpmax2_R      = data.alpmax2_R;
-Qx_R           = data.Qx_R;
-Qy_R           = data.Qy_R;
-Sx_R           = data.Sx_R;
-Sy_R           = data.Sy_R;
 
 % The States
 beta       		= x(:,1);
@@ -92,31 +59,9 @@ Fax 	= 0.5*rho*Af*CD.*u.^2;    %(Eq: 46)
 Fay 	= 0.5*rho*Af*CS.*u.^2;    %(Eq: 47)
 Faz 	= 0.5*rho*Af*CL.*u.^2;    %(Eq: 48)
 
-% front right tyre force calculation
-muxmaxf = (Ffz - Fz1_F).*(muxmax2_F-muxmax1_F)./(Fz2_F-Fz1_F) + muxmax1_F;
-muymaxf = (Ffz - Fz1_F).*(muymax2_F-muymax1_F)./(Fz2_F-Fz1_F) + muymax1_F;
-kmaxf   = (Ffz - Fz1_F).*(kmax2_F-kmax1_F)./(Fz2_F-Fz1_F)+kmax1_F;
-alpmaxf = (Ffz - Fz1_F).*(alpmax2_F-alpmax1_F)./(Fz2_F-Fz1_F)+alpmax1_F;
-knf     = k_f./kmaxf;
-alpnf   = alp_f./alpmaxf;
-rhof    = sqrt(knf.^2+alpnf.^2);
-muxf    = muxmaxf.*sin(Qx_F.*atan(Sx_F.*rhof));
-muyf    = muymaxf.*sin(Qy_F.*atan(Sy_F.*rhof));
-Ffx     = muxf.*Ffz.*knf./rhof;
-Ffy     = muyf.*Ffz.*alpnf./rhof;
-
-% rear right tyre force calculation
-muxmaxr = (Frz - Fz1_R).*(muxmax2_R-muxmax1_R)./(Fz2_R-Fz1_R) + muxmax1_R;
-muymaxr = (Frz - Fz1_R).*(muymax2_R-muymax1_R)./(Fz2_R-Fz1_R) + muymax1_R;
-kmaxr   = (Frz - Fz1_R).*(kmax2_R-kmax1_R)./(Fz2_R-Fz1_R)+kmax1_R;
-alpmaxr = (Frz - Fz1_R).*(alpmax2_R-alpmax1_R)./(Fz2_R-Fz1_R)+alpmax1_R;
-knr     = k_r./kmaxr;
-alpnr   = alp_r./alpmaxr;
-rhor    = sqrt(knr.^2+alpnr.^2);
-muxr    = muxmaxr.*sin(Qx_R.*atan(Sx_R.*rhor));
-muyr    = muymaxr.*sin(Qy_R.*atan(Sy_R.*rhor));
-Frx     = muxr.*Frz.*knr./rhor;
-Fry     = muyr.*Frz.*alpnr./rhor;
+%Tire forces
+[Ffx, Ffy] = Tire_force(alp_f, k_f, Ffz, data.tir);
+[Frx, Fry] = Tire_force(alp_r, k_r, Frz, data.tir);
 
 % Gravitational accelerations (Eq: 36)
 Gx      = -g./sqrt(cos(phi)^2.*R.^2+k^2).*(R.*sin(beta).*sin(2*phi)/2 - k*cos(beta));

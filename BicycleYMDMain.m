@@ -1,162 +1,75 @@
 %% Preamble
 tic
 clc; clear; close all;
+addpath('Functions'); addpath("Data"); addpath("Results");
+
+OI.orange     = [230, 159, 0]   / 255;
+OI.skyBlue    = [86, 180, 233]  / 255;
+OI.blueGreen  = [0, 158, 115]   / 255;
+OI.yellow     = [240, 228, 66]  / 255;
+OI.blue       = [0, 114, 178]   / 255;
+OI.vermillion = [213, 94, 0]    / 255;
+OI.purple     = [204, 121, 167] / 255;
 
 AdigatorRegen = true;
-%% Car model input parameters (Ingrid Salisbury Thesis)
 
-%geometry and inertia
-w = 3.4;                      %wheelbase (m)
-a = 1.6;                      %distance from cg to front axle (m)
-b = 1.8;                      %distance from cg to rear axle (m)
-h = 0.35;                     %cg height (m)
-Af = 2.24;                    %frontal area (m^2)
-mass = 720;                   %vehicle mass (kg)
-J = 450;                      %Moment of inertia about the z-axis (kg m^2)
+%% Define scaling and inputs
 
-%aero data
-CD = 0.4;                     %drag coefficient
-CS = 0.0;                     %sideforce coefficient
-CL = 0.2;                     %lift coefficient (positive down)
+%Principle parameters
+auxdata.g0 = 9.81;
+auxdata.l0 = 3.4;
+auxdata.m0 = 720;
 
-%planetary parameters
-g = 9.81;                     %acceleration due to gravity (m/s^2)
-rho = 1.21094734506627;       %air density (kg/m^3)
+% scale factors
+auxdata.lengthscale  = 1/auxdata.l0;                 lengthscale  = auxdata.lengthscale;
+auxdata.massscale    = 1/auxdata.m0;                 massscale    = auxdata.massscale;
+auxdata.timescale    = sqrt(auxdata.g0./auxdata.l0); timescale    = auxdata.timescale;
+auxdata.velscale     = lengthscale/timescale;        velscale     = auxdata.velscale;
+auxdata.accscale     = lengthscale/timescale^2;      accscale     = auxdata.accscale;
+auxdata.forcescale   = massscale*accscale;           forcescale   = auxdata.forcescale;
+auxdata.powerscale   = forcescale*velscale;          powerscale   = auxdata.powerscale;
+auxdata.inertiascale = massscale*lengthscale^2;      inertiascale = auxdata.inertiascale;
+auxdata.springscale  = forcescale/lengthscale;       springscale  = auxdata.springscale;
+auxdata.dampscale    = massscale/timescale;          dampscale    = auxdata.dampscale;
+auxdata.g            = auxdata.g0*accscale;
+
+run('bicycle.m');       %Car data
+auxdata.rho = 1.21094734506627*massscale/lengthscale^3; %air density (kg/m^3)
 
 %road profile
-k   = 0;                      %road inclination (positive uphill)
-phi = 0.0*pi/180;             %road banking (negative left NASCAR friendly)
+auxdata.k   = 0;          %road inclination (positive uphill)
+auxdata.phi = 0.0*pi/180; %road banking (negative left NASCAR friendly)
 
 %motion characteristics
-V  = 50.0;                    %whole vehicle velocity (m/s)
-ax = 0.0;                     %longitudinal acceleration (m/s^2)
-s0 = -2;                      %initial negative lateral acceleration guess (g)
-sf = 2;                       %initial positive lateral acceleration guess (g)
+auxdata.V  = 50.0*velscale; %whole vehicle velocity (m/s)
+auxdata.ax = 0.0*accscale;  %longitudinal acceleration (m/s^2)
+auxdata.s0 = -2;   %initial negative lateral acceleration guess (g)
+auxdata.sf = 2;    %initial positive lateral acceleration guess (g)
 
-%Front tire data (Appendix 2, Perantoni and Limebeer, 2014)
-Fz1_F           = -2000;                %Reference load 1 (N)
-Fz2_F           = -6000;                %Reference load 2 (N)
-muxmax1_F       = 1.75;                 %Peak longitudinal friction coefficient at load 1
-muxmax2_F       = 1.4;                  %Peak longitudinal friction coefficient at load 2
-kmax1_F         = 0.11;                 %Slip coefficient for the friction peak at load 1
-kmax2_F         = 0.1;                  %Slip coefficient for the friction peak at load 2
-muymax1_F       = 1.8;                  %Peak lateral friction coefficient at load 1
-muymax2_F       = 0.45;                 %Peak lateral friction coefficient at load 2
-alpmax1_F       = 9;                    %Slip angle for the friction peak at load 1 (deg)
-alpmax2_F       = 8;                    %Slip angle for the friction peak at load 2 (deg)
-Qx_F            = 1.9;                  %Longitudinal shape factor
-Qy_F            = 1.9;                  %Lateral shape factor
-Sx_F            = pi./2./atan(Qx_F);
-Sy_F            = pi./2./atan(Qy_F);
-
-%Rear tire data (Appendix 2, Perantoni and Limebeer, 2014)
-Fz1_R     = -2000;                      %Reference load 1 (N)
-Fz2_R     = -6000;                      %Reference load 2 (N)
-muxmax1_R = 1.75;                       %Peak longitudinal friction coefficient at load 1
-muxmax2_R = 1.4;                        %Peak longitudinal friction coefficient at load 2
-kmax1_R   = 0.11;                       %Slip coefficient for the friction peak at load 1
-kmax2_R   = 0.1;                        %Slip coefficient for the friction peak at load 2
-muymax1_R = 1.8;                        %Peak lateral friction coefficient at load 1
-muymax2_R = 0.45;                       %Peak lateral friction coefficient at load 2
-alpmax1_R = 9;                          %Slip angle for the friction peak at load 1 (deg)
-alpmax2_R = 8;                          %Slip angle for the friction peak at load 2 (deg)
-Qx_R      = 1.9;                        %Longitudinal shape factor
-Qy_R      = 1.9;                        %Lateral shape factor
-Sx_R      = pi./2./atan(Qx_R);
-Sy_R      = pi./2./atan(Qy_R);
+%Tire data
+run('F12014_tire.m');
+auxdata.tir.Fz_1 = auxdata.tir.Fz_1*forcescale;
+auxdata.tir.Fz_2 = auxdata.tir.Fz_2*forcescale;
 
 %to be organized
-eps = 1.0e-4;
+eps = 1.0e-4; auxdata.eps = eps;
+
 %% Build 'auxdata' Structure
 
-auxdata.eps 			= eps;
-
-%define the scale factors
-lengthscale             = 1/w; 
-massscale               = 1/mass;
-timescale               = sqrt(g/w);
-velocityscale           = lengthscale/timescale; 
-accscale                = lengthscale/timescale^2;
-forcescale              = massscale*lengthscale/timescale^2;
-powerscale              = forcescale*velocityscale;
-diffscale               = massscale*lengthscale^2/timescale; 
-paramscale              = massscale/timescale^2; 
-
-%store the scale factors
-auxdata.lengthscale     = lengthscale;
-auxdata.massscale       = massscale;
-auxdata.timescale       = timescale;
-auxdata.forcescale      = forcescale;
-auxdata.paramscale      = paramscale;
-
-%non-dimensionalize and store the geometry and inertia
-auxdata.w     = w*lengthscale;
-auxdata.a     = a*lengthscale;
-auxdata.b     = b*lengthscale;
-auxdata.h     = h*lengthscale;
-auxdata.Af    = Af*lengthscale^2;
-auxdata.M     = mass*massscale;
-auxdata.J     = J*lengthscale^2*massscale;
-
-%store aero data
-auxdata.CD    = CD;
-auxdata.CS    = CS;
-auxdata.CL    = CL;
-
 %non-dimensionalize and store planetary parameters
-auxdata.g      = g*accscale;
-auxdata.rho    = rho*massscale/lengthscale^3;
-
-%store road profile
-auxdata.k      = k;
-auxdata.phi    = phi;
-
-%non-dimensionalize and store motion characteristics
-auxdata.V      = V*velocityscale;
-auxdata.ax     = ax*accscale;
-auxdata.s0     = s0;
-auxdata.sf     = sf;
-
-%non-dimensionalize and store front tire data
-auxdata.Fz1_F     = Fz1_F*forcescale;
-auxdata.Fz2_F     = Fz2_F*forcescale;
-auxdata.muxmax1_F = muxmax1_F;
-auxdata.muxmax2_F = muxmax2_F;
-auxdata.kmax1_F   = kmax1_F;
-auxdata.kmax2_F   = kmax2_F;
-auxdata.muymax1_F = muymax1_F;
-auxdata.muymax2_F = muymax2_F;
-auxdata.alpmax1_F = alpmax1_F*pi/180;
-auxdata.alpmax2_F = alpmax2_F*pi/180;
-auxdata.Qx_F      = Qx_F;
-auxdata.Qy_F      = Qy_F;
-auxdata.Sx_F      = Sx_F;
-auxdata.Sy_F      = Sy_F;
-
-%non-dimensionalize and store rear tire data
-auxdata.Fz1_R     = Fz1_R*forcescale;
-auxdata.Fz2_R     = Fz2_R*forcescale;
-auxdata.muxmax1_R = muxmax1_R;
-auxdata.muxmax2_R = muxmax2_R;
-auxdata.kmax1_R   = kmax1_R;
-auxdata.kmax2_R   = kmax2_R;
-auxdata.muymax1_R = muymax1_R;
-auxdata.muymax2_R = muymax2_R;
-auxdata.alpmax1_R = alpmax1_R*pi/180;
-auxdata.alpmax2_R = alpmax2_R*pi/180;
-auxdata.Qx_R      = Qx_R;
-auxdata.Qy_R      = Qy_R;
-auxdata.Sx_R      = Sx_R;
-auxdata.Sy_R      = Sy_R;
+auxdata.g      = auxdata.g0*accscale;
 
 %withdraw nondimensional terms
-M   = auxdata.M;                     %withdraw nondimensional mass from auxdata structure
-g   = auxdata.g;                     %withdraw nondimensional gravity from auxdata structure
-rho = auxdata.rho;                   %withdraw nondimensional air density from auxdata structure
-Af  = auxdata.Af;                    %withdraw nondimensional frontal area from auxdata structure
-h   = auxdata.h;                     %withdraw nondimensional cg height from auxdata structure
-a   = auxdata.a;                     %withdraw nondimensional a
-b   = auxdata.b;                     %withdraw nondimensional b
+M   = auxdata.M;   %withdraw nondimensional mass from auxdata structure
+g   = auxdata.g;   %withdraw nondimensional gravity from auxdata structure
+rho = auxdata.rho; %withdraw nondimensional air density from auxdata structure
+Af  = auxdata.Af;  %withdraw nondimensional frontal area from auxdata structure
+h   = auxdata.h;   %withdraw nondimensional cg height from auxdata structure
+a   = auxdata.a;   %withdraw nondimensional a
+b   = auxdata.b;   %withdraw nondimensional b
+k = auxdata.k;   %withdraw nondimensional road inclination from auxdata structure
+phi = auxdata.phi; %withdraw nondimensional road banking from auxdata structure
+
 %% Build 'bounds' Structure
 
 %define state and input scales
@@ -281,100 +194,13 @@ for kk = 1:length(deltaRef)
     omega       = -sqrt(sqrt(ay.^2 + eps)./R./cos(phi)).*2/pi.*atan(1000*(ay+eps));     %calculating yaw rate
     omega_Bz    = omega.*R.*cos(phi).^2./sqrt(R.^2.*cos(phi).^2 + k.^2);                %
 
-
     %calculating front and rear slip angles
     alp_f   = atan2(v+omega_Bz.*a,u) - delta;
     alp_r   = atan2(v-omega_Bz.*b,u);
 
-    %withdraw front tire data
-    Fz1_F     = auxdata.Fz1_F;
-    Fz2_F     = auxdata.Fz2_F;
-    muxmax1_F = auxdata.muxmax1_F;
-    muxmax2_F = auxdata.muxmax2_F;
-    kmax1_F   = auxdata.kmax1_F;
-    kmax2_F   = auxdata.kmax2_F;
-    muymax1_F = auxdata.muymax1_F;
-    muymax2_F = auxdata.muymax2_F;
-    alpmax1_F = auxdata.alpmax1_F;
-    alpmax2_F = auxdata.alpmax2_F;
-    Qx_F      = auxdata.Qx_F;
-    Qy_F      = auxdata.Qy_F;
-    Sx_F      = auxdata.Sx_F;
-    Sy_F      = auxdata.Sy_F;
-
-    %store front tire data into a new structure
-    dataF.Fz1     = auxdata.Fz1_F;
-    dataF.Fz2     = auxdata.Fz2_F;
-    dataF.muxmax1 = auxdata.muxmax1_F;
-    dataF.muxmax2 = auxdata.muxmax2_F;
-    dataF.kmax1   = auxdata.kmax1_F;
-    dataF.kmax2   = auxdata.kmax2_F;
-    dataF.muymax1 = auxdata.muymax1_F;
-    dataF.muymax2 = auxdata.muymax2_F;
-    dataF.alpmax1 = auxdata.alpmax1_F;
-    dataF.alpmax2 = auxdata.alpmax2_F;
-    dataF.Qx      = auxdata.Qx_F;
-    dataF.Qy      = auxdata.Qy_F;
-    dataF.Sx      = auxdata.Sx_F;
-    dataF.Sy      = auxdata.Sy_F;
-
-    %front tire force calculation (Appendix 1, Perantoni and Limebeer, 2014)
-    muxmaxf = (Ffz - Fz1_F).*(muxmax2_F-muxmax1_F)./(Fz2_F-Fz1_F) + muxmax1_F;
-    muymaxf = (Ffz - Fz1_F).*(muymax2_F-muymax1_F)./(Fz2_F-Fz1_F) + muymax1_F;
-    kmaxf   = (Ffz - Fz1_F).*(kmax2_F-kmax1_F)./(Fz2_F-Fz1_F)+kmax1_F;
-    alpmaxf = (Ffz - Fz1_F).*(alpmax2_F-alpmax1_F)./(Fz2_F-Fz1_F)+alpmax1_F;
-    knf     = kf./kmaxf;
-    alpnf   = alp_f./alpmaxf;
-    rhof    = sqrt(knf.^2+alpnf.^2);
-    muxf    = muxmaxf.*sin(Qx_F.*atan(Sx_F.*rhof));
-    muyf    = muymaxf.*sin(Qy_F.*atan(Sy_F.*rhof));
-    Ffx     = muxf.*Ffz.*knf./rhof;
-    Ffy     = muyf.*Ffz.*alpnf./rhof;
-
-    %withdraw rear tire data
-    Fz1_R     = auxdata.Fz1_R;
-    Fz2_R     = auxdata.Fz2_R;
-    muxmax1_R = auxdata.muxmax1_R;
-    muxmax2_R = auxdata.muxmax2_R;
-    kmax1_R   = auxdata.kmax1_R;
-    kmax2_R   = auxdata.kmax2_R;
-    muymax1_R = auxdata.muymax1_R;
-    muymax2_R = auxdata.muymax2_R;
-    alpmax1_R = auxdata.alpmax1_R;
-    alpmax2_R = auxdata.alpmax2_R;
-    Qx_R      = auxdata.Qx_R;
-    Qy_R      = auxdata.Qy_R;
-    Sx_R      = auxdata.Sx_R;
-    Sy_R      = auxdata.Sy_R;
-
-    %store rear tire data into a new structure
-    dataR.Fz1     = auxdata.Fz1_R;
-    dataR.Fz2     = auxdata.Fz2_R;
-    dataR.muxmax1 = auxdata.muxmax1_R;
-    dataR.muxmax2 = auxdata.muxmax2_R;
-    dataR.kmax1   = auxdata.kmax1_R;
-    dataR.kmax2   = auxdata.kmax2_R;
-    dataR.muymax1 = auxdata.muymax1_R;
-    dataR.muymax2 = auxdata.muymax2_R;
-    dataR.alpmax1 = auxdata.alpmax1_R;
-    dataR.alpmax2 = auxdata.alpmax2_R;
-    dataR.Qx      = auxdata.Qx_R;
-    dataR.Qy      = auxdata.Qy_R;
-    dataR.Sx      = auxdata.Sx_R;
-    dataR.Sy      = auxdata.Sy_R;
-
-    %rear tyre force calculation (Appendix 1, Perantoni and Limebeer, 2014)
-    muxmaxr = (Frz - Fz1_R).*(muxmax2_R-muxmax1_R)./(Fz2_R-Fz1_R) + muxmax1_R;
-    muymaxr = (Frz - Fz1_R).*(muymax2_R-muymax1_R)./(Fz2_R-Fz1_R) + muymax1_R;
-    kmaxr   = (Frz - Fz1_R).*(kmax2_R-kmax1_R)./(Fz2_R-Fz1_R)+kmax1_R;
-    alpmaxr = (Frz - Fz1_R).*(alpmax2_R-alpmax1_R)./(Fz2_R-Fz1_R)+alpmax1_R;
-    knr     = kr./kmaxr;
-    alpnr   = alp_r./alpmaxr;
-    rhor    = sqrt(knr.^2+alpnr.^2);
-    muxr    = muxmaxr.*sin(Qx_R.*atan(Sx_R.*rhor));
-    muyr    = muymaxr.*sin(Qy_R.*atan(Sy_R.*rhor));
-    Frx     = muxr.*Frz.*knr./rhor;
-    Fry     = muyr.*Frz.*alpnr./rhor;
+    %Tire force calculations
+    [Ffx, Ffy] = Tire_force(alp_f, kf, Ffz, auxdata.tir);
+    [Frx, Fry] = Tire_force(alp_r, kr, Frz, auxdata.tir);
 
     %YAW MOMENT CALCULATION
     Mz      = a.*(cos(delta).*Ffy + sin(delta).*Ffx) - b.*Fry;
@@ -404,9 +230,11 @@ for kk = 1:length(deltaRef)
     R2 	= ax.*sin(beta) -AyB - Fy./M;
 
     TsT = R1.^2 + R2.^2;
-    ii = [0, TsT' < 0.005,0];
-    i1 = min(strfind(ii,[0 1]));
-    i2 = max(strfind(ii,[1 0]));
+    valid = TsT' < 0.005;
+    ii = [0, valid, 0];
+    idxValid = find(valid);
+    i1 = idxValid(1);
+    i2 = idxValid(end);
     AyV = ay*cos(phi);
     AyVMin(kk) = AyV(i1);
     AyVMax(kk) = AyV(i2);
@@ -431,11 +259,11 @@ for kk = 1:length(deltaRef)
     figure(2)       %Yaw moment diagram
     hold on
     if deltaRef(kk) > 0
-        plot(AyV(i1:i2),Mz(i1:i2),'r','LineWidth',1)
+        plot(AyV(i1:i2),Mz(i1:i2),'Color',OI.blue,'LineWidth',2)
     elseif deltaRef(kk) < 0
-        plot(AyV(i1:i2),Mz(i1:i2),'b','LineWidth',1)
+        plot(AyV(i1:i2),Mz(i1:i2),'Color',OI.vermillion,'LineWidth',2)
     else
-        plot(AyV(i1:i2),Mz(i1:i2),'k','LineWidth',2)
+        plot(AyV(i1:i2),Mz(i1:i2),'Color','k','LineWidth',2)
     end
     kl = 0;
     betaRef =  -7:1:7;
@@ -493,15 +321,15 @@ for kk = 1:length(deltaRef)
     figure(12)      %Beta diagram
     hold on
     if deltaRef(kk) > 0
-        plot(beta(i1:i2)*180/pi,Mz(i1:i2),'r','LineWidth',1.5)
+        plot(beta(i1:i2)*180/pi,Mz(i1:i2),'Color',OI.blue,'LineWidth',2)
     elseif deltaRef(kk) < 0
-        plot(beta(i1:i2)*180/pi,Mz(i1:i2),'b','LineWidth',1.5)
+        plot(beta(i1:i2)*180/pi,Mz(i1:i2),'Color',OI.vermillion,'LineWidth',2)
     else
-        plot(beta(i1:i2)*180/pi,Mz(i1:i2),'k','LineWidth',1.5)
+        plot(beta(i1:i2)*180/pi,Mz(i1:i2),'Color','k','LineWidth',2)
     end
 
-    Cf          = -DFyAlf(dataF,Ffz,alp_f,kf); %outputs an instantaneous cornering stiffness (front)
-    Cr          = -DFyAlf(dataR,Frz,alp_r,kr); %outputs an instantaneous cornering stiffness (rear)
+    Cf          = -DFyAlf(auxdata.tir,Ffz,alp_f,kf); %outputs an instantaneous cornering stiffness (front)
+    Cr          = -DFyAlf(auxdata.tir,Frz,alp_r,kr); %outputs an instantaneous cornering stiffness (rear)
     %ConDerv     = a*(Cf+Ffx);
     ConDerv     = a*(Cf*cos(delta) - Cf.*(delta -atan2(omega*a-V*sin(beta),V*cos(beta))).*sin(delta)+Ffx*cos(delta));
     %StabDeriv   = b*Cr - a*Cf;
@@ -554,6 +382,7 @@ for kk = 1:length(deltaRef)
 end
 
 %% Plot details
+
 xmin = min(AyVMin);
 xmax = max(AyVMax);
 ymin = min(MzMin);
@@ -562,7 +391,7 @@ ymax = max(MzMax);
 figure(1)
 box on
 grid on
-xlabel('Lateral acceleration (G)')
+xlabel('Lateral acceleration, $a_y$ (g)')
 ylabel('Solution residue')
 
 figure(2)
@@ -570,132 +399,134 @@ xlim([xmin xmax])
 ylim([ymin-0.1 ymax+0.1])
 box on
 grid on
-xlabel('Normalised lateral acceleration')
-ylabel('Normalized yaw moment')
+xlabel('Normalized lateral acceleration', 'Interpreter', 'latex', 'FontSize', 21)
+ylabel('Normalized yaw moment','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 xqP(xqP == -100) = NaN;
 MzqP(MzqP == -100) = NaN;
 for kj = 1:length(betaRef)
     if betaRef(kj) > 0
         % plot(ay(i1:i2),Mz(i1:i2),'r','LineWidth',1)
-        plot(xqP(:,kj),MzqP(:,kj),'ko-.','LineWidth',1,'MarkerFaceColor','r')
+        plot(xqP(:,kj),MzqP(:,kj),'ko-.','LineWidth',1,'MarkerFaceColor',OI.blue)
     elseif betaRef(kj) < 0
-        plot(xqP(:,kj),MzqP(:,kj),'ko-.','LineWidth',1,'MarkerFaceColor','b')
+        plot(xqP(:,kj),MzqP(:,kj),'ko-.','LineWidth',1,'MarkerFaceColor',OI.vermillion)
     else
         plot(xqP(:,kj),MzqP(:,kj),'ko-.','LineWidth',1,'MarkerFaceColor','k')
     end
 end
+axis equal
 
 figure(3)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Front tyre normal load (N)');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Front tyre normal load, $F_z$ (N)','Interpreter', 'latex', 'FontSize', 21);
 grid minor
 box on
 
 figure(4)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Rear tyre normal load (N)');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Rear tyre normal load, $F_z$ (N)','Interpreter', 'latex', 'FontSize', 21);
 grid minor
 box on
 
 figure(5)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Front wheel longitudinal slip');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Front wheel longitudinal slip, $\kappa_f$','Interpreter', 'latex', 'FontSize', 21);
 box on
 grid minor
 
 figure(6)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Rear wheel longitudinal slip');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Rear wheel longitudinal slip, $\kappa_r$','Interpreter', 'latex', 'FontSize', 21);
 box on
 grid minor
 
 figure(7)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Front wheel slip angle (deg)');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Front wheel slip angle, $\alpha_f$ (deg)','Interpreter', 'latex', 'FontSize', 21);
 box on
 grid minor
 
 figure(8)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Rear wheel slip angle (deg)');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Rear wheel slip angle, $\alpha_r$ (deg)','Interpreter', 'latex', 'FontSize', 21);
 box on
 grid minor
 
 figure(9)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Front wheel side force (N)');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Front wheel side force, $F_y$ (N)','Interpreter', 'latex', 'FontSize', 21);
 box on
 grid minor
 
 figure(10)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Rear wheel side force (N)');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Rear wheel side force, $F_y$ (N)','Interpreter', 'latex', 'FontSize', 21);
 box on
 grid minor
 
 figure(11)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Side slip angle (deg)');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Side slip angle, $\beta$ (deg)','Interpreter', 'latex', 'FontSize', 21);
 box on
 grid minor
 
 figure(12)
 hold on
-% xlim([beta(i1)*180/pi beta(i2)*180/pi]);
 xlim([betaRef(1) betaRef(end)]);
-xlabel('Side slip angle (deg)');
-ylabel('Normaled yaw moment');
+xlabel('Side slip angle, $\beta$ (deg)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Normalized yaw moment','Interpreter', 'latex', 'FontSize', 21);
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 figure(13)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Front tyre cornering stiffness');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Front tyre cornering stiffness, $C_{\alpha f}$','Interpreter', 'latex', 'FontSize', 21);
 grid minor
 box on
 
 figure(14)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Rear tyre cornering stiffness');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Rear tyre cornering stiffness, $C_{\alpha r}$','Interpreter', 'latex', 'FontSize', 21);
 grid minor
 box on
 
 figure(15)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Understeer coefficient');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Understeer coefficient, $K$','Interpreter', 'latex', 'FontSize', 21);
 grid minor
 box on
 
 figure(16)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Control derivative');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Control derivative, $C_{\delta}$','Interpreter', 'latex', 'FontSize', 21);
 box on
 grid minor
 
 figure(17)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Stability derivative');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Stability derivative, $C_{\phi}$','Interpreter', 'latex', 'FontSize', 21);
 box on
 grid minor
 
 figure(18)
 xlim([xmin xmax])
-xlabel('Lateral acceleration (G)');
-ylabel('Yaw damping derivative');
+xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
+ylabel('Yaw damping derivative, $C_r$','Interpreter', 'latex', 'FontSize', 21);
 box on
 grid minor
 

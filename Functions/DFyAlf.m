@@ -5,16 +5,16 @@ function dyFalf = DFyAlf(data,Fz,alf,k)
 %tire data, downforce, slip angle, slip ratio
 %Linearize the lateral force characteristic around (Fz,alf,k)
 
-Fz1     = data.Fz1;
-Fz2     = data.Fz2;
-muxmax1 = data.muxmax1;
-muxmax2 = data.muxmax2;
-kmax1   = data.kmax1;
-kmax2   = data.kmax2;
-muymax1 = data.muymax1;
-muymax2 = data.muymax2;
-alfmax1 = data.alpmax1;
-alfmax2 = data.alpmax2;
+Fz1     = data.Fz_1;
+Fz2     = data.Fz_2;
+muxmax1 = data.mux_1;
+muxmax2 = data.mux_2;
+kmax1   = data.kappa_1;
+kmax2   = data.kappa_2;
+muymax1 = data.muy_1;
+muymax2 = data.muy_2;
+alfmax1 = data.alp_1;
+alfmax2 = data.alp_2;
 Qx      = data.Qx;
 Qy      = data.Qy;
 Sx      = data.Sx;
