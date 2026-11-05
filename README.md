@@ -21,6 +21,7 @@ This method has significant advantages over traditional point-by-point calculati
 * [GPOPS-II](https://www.gpops2.com/) must be installed to solve the optimal control problem.
   * For information about configuring the optimal control problem, please refer to the user manual available on their website.
 * [ADiGator](https://github.com/matt-weinstein/adigator) must also be installed to calculate the derivative files.
+* Note that the normal forces in this model are negative.
 
 ## Information
 * Extensive information and references can be found in our paper published in [Vehicle System Dynamics](https://www.tandfonline.com/doi/full/10.1080/00423114.2025.2471344?src=exp-la#d1e138)

@@ -11,6 +11,24 @@ OI.blue       = [0, 114, 178]   / 255;
 OI.vermillion = [213, 94, 0]    / 255;
 OI.purple     = [204, 121, 167] / 255;
 
+% Nord color palette
+Nord.nord0  = [46, 52, 64]   / 255; 
+Nord.nord1  = [59, 66, 82]   / 255;
+Nord.nord2  = [67, 76, 94]   / 255;
+Nord.nord3  = [76, 86, 106]  / 255;
+Nord.nord4  = [216, 222, 233]/ 255;
+Nord.nord5  = [229, 233, 240]/ 255;
+Nord.nord6  = [236, 239, 244]/ 255;
+Nord.nord7  = [143, 188, 187]/ 255;
+Nord.nord8  = [136, 192, 208]/ 255;
+Nord.nord9  = [129, 161, 193]/ 255;
+Nord.nord10 = [94, 129, 172] / 255;
+Nord.nord11 = [191, 97, 106] / 255;
+Nord.nord12 = [235, 203, 139] / 255;    
+Nord.nord13 = [191, 144, 0] / 255;
+Nord.nord14 = [133, 153, 0] / 255;
+Nord.nord15 = [180, 142, 173] / 255;
+
 AdigatorRegen = true;
 
 %% Define scaling and inputs
@@ -38,7 +56,7 @@ auxdata.rho = 1.21094734506627*massscale/lengthscale^3; %air density (kg/m^3)
 
 %road profile
 auxdata.k   = 0;          %road inclination (positive uphill)
-auxdata.phi = 0.0*pi/180; %road banking (negative left NASCAR friendly)
+auxdata.phi = -25*pi/180; %road banking (negative left NASCAR friendly)
 
 %motion characteristics
 auxdata.V  = 50.0*velscale; %whole vehicle velocity (m/s)
@@ -74,9 +92,9 @@ phi = auxdata.phi; %withdraw nondimensional road banking from auxdata structure
 
 %define state and input scales
 auxdata.statescale = [1 1 1];                       % The states: beta, k_f, k_r
-auxdata.inputscale = [1 1 1 forcescale forcescale];	% The controls: dbeta, dk_f, dk_r, Ffz, Frz;
+auxdata.inputscale = [1/accscale 1/accscale 1/accscale forcescale forcescale];	% The controls: dbeta, dk_f, dk_r, Ffz, Frz;
 
-%set limits on the states
+%set limits on the states [beta, k_f, k_r]
 initialStateLower = [-20*pi/180.0  -.1 -.1].*auxdata.statescale;
 initialStateUpper = [ 20*pi/180.0    0  .1].*auxdata.statescale;
 stateLower        = initialStateLower;
@@ -250,11 +268,18 @@ for kk = 1:length(deltaRef)
 
 
     
+    if deltaRef(kk) > 0
+        lineColor = OI.blue;
+    elseif deltaRef(kk) < 0
+        lineColor = OI.vermillion;
+    else
+        lineColor = 'k';
+    end
+
     figure(1)       %'Solution residue'
     hold on
     plot(AyV,TsT,'k')
-    plot(AyV,ii(2:end-1),'r')
-    grid minor
+    plot(AyV,ii(2:end-1),'Color',OI.vermillion,'Linewidth',1.5)
     
     figure(2)       %Yaw moment diagram
     hold on
@@ -283,40 +308,40 @@ for kk = 1:length(deltaRef)
 
     figure(3)      %'Front tyre normal load (N)'
     hold on
-    plot(AyV(i1:i2),Ffz(i1:i2)/forcescale,'k','LineWidth',1.5)
-    plot(ay(i1:i2),Ffz(i1:i2)/forcescale,'r','LineWidth',1.5)
+    plot(AyV(i1:i2),Ffz(i1:i2)/forcescale,'Color',lineColor,'LineWidth',2)
+    plot(ay(i1:i2),Ffz(i1:i2)/forcescale,'--','Color',lineColor,'LineWidth',2)
 
     figure(4)      %'Rear tyre normal load (N)'
     hold on
-    plot(AyV(i1:i2),Frz(i1:i2)/forcescale,'k','LineWidth',1.5)
+    plot(AyV(i1:i2),Frz(i1:i2)/forcescale,'Color',lineColor,'LineWidth',2)
 
     figure(5)       %'Front wheel slip angle (deg)'
     hold on
-    plot(AyV(i1:i2),alp_f(i1:i2)*180/pi,'k','LineWidth',1.5)
+    plot(AyV(i1:i2),alp_f(i1:i2)*180/pi,'Color',lineColor,'LineWidth',2)
 
     figure(6)       %'Rear wheel slip angle (deg)'
     hold on
-    plot(AyV(i1:i2),alp_r(i1:i2)*180/pi,'k','LineWidth',1.5)
+    plot(AyV(i1:i2),alp_r(i1:i2)*180/pi,'Color',lineColor,'LineWidth',2)
 
     figure(7)       %'Front wheel longitudinal slip'
     hold on
-    plot(AyV(i1:i2),kf(i1:i2),'k','LineWidth',1.5)
+    plot(AyV(i1:i2),kf(i1:i2),'Color',lineColor,'LineWidth',2)
 
     figure(8)       %'Rear wheel longitudinal slip'
     hold on
-    plot(AyV(i1:i2),kr(i1:i2),'k','LineWidth',1.5)
+    plot(AyV(i1:i2),kr(i1:i2),'Color',lineColor,'LineWidth',2)
 
     figure(9)       %'Front wheel side force (N)'
     hold on
-    plot(AyV(i1:i2),Ffy(i1:i2)/forcescale,'k','LineWidth',1.5)
+    plot(AyV(i1:i2),Ffy(i1:i2)/forcescale,'Color',lineColor,'LineWidth',2)
 
     figure(10)       %'Rear wheel side force (N)
     hold on
-    plot(AyV(i1:i2),Fry(i1:i2)/forcescale,'k','LineWidth',1.5)
+    plot(AyV(i1:i2),Fry(i1:i2)/forcescale,'Color',lineColor,'LineWidth',2)
 
     figure(11)       %'Side slip angle (deg)'
     hold on
-    plot(AyV(i1:i2),beta(i1:i2)*180/pi,'k','LineWidth',1.5)
+    plot(AyV(i1:i2),beta(i1:i2)*180/pi,'Color',lineColor,'LineWidth',2)
 
     figure(12)      %Beta diagram
     hold on
@@ -338,47 +363,29 @@ for kk = 1:length(deltaRef)
 
     figure(13)     %'Front tire cornering stiffness'
     hold on
-    plot(AyV(i1:i2),Cf(i1:i2),'k','LineWidth',1.5)
+    plot(AyV(i1:i2),Cf(i1:i2),'Color',lineColor,'LineWidth',2)
 
     figure(14)   % 'Rear tire cornering stiffness'
     hold on
-    plot(AyV(i1:i2),Cr(i1:i2),'k','LineWidth',1.5)
+    plot(AyV(i1:i2),Cr(i1:i2),'Color',lineColor,'LineWidth',2)
 
     eta = (b*Cr-a*Cf)*M*g/(a+b);
     figure(15)     %'Understeer coefficient'
     hold on
-    plot(AyV(i1:i2),eta(i1:i2),'k','LineWidth',1.5)
+    plot(AyV(i1:i2),eta(i1:i2),'Color',lineColor,'LineWidth',2)
 
     figure(16)      %'Control derivative'
     hold on
-    if deltaRef(kk) > 0
-        plot(AyV(i1:i2),ConDerv(i1:i2),'r','LineWidth',1.5)
-    elseif deltaRef(kk) < 0
-        plot(AyV(i1:i2),ConDerv(i1:i2),'b','LineWidth',1.5)
-    else
-        plot(AyV(i1:i2),ConDerv(i1:i2),'k','LineWidth',1.5)
-    end
+    plot(AyV(i1:i2),ConDerv(i1:i2),'Color',lineColor,'LineWidth',2)
 
     figure(17)      %'Stability derivative'
     hold on
-    if deltaRef(kk) > 0
-        plot(AyV(i1:i2),StabDeriv(i1:i2),'r','LineWidth',1.5)
-    elseif deltaRef(kk) < 0
-        plot(AyV(i1:i2),StabDeriv(i1:i2),'b','LineWidth',1.5)
-    else
-        plot(AyV(i1:i2),StabDeriv(i1:i2),'k','LineWidth',1.5)
-    end
+    plot(AyV(i1:i2),StabDeriv(i1:i2),'Color',lineColor,'LineWidth',2)
 
     YDD = -(a^2.*Cf+b^2.*Cr)/V;
     figure(18)      %yaw damping
     hold on
-    if deltaRef(kk) > 0
-        plot(AyV(i1:i2),YDD(i1:i2),'r','LineWidth',1.5)
-    elseif deltaRef(kk) < 0
-        plot(AyV(i1:i2),YDD(i1:i2),'b','LineWidth',1.5)
-    else
-        plot(AyV(i1:i2),YDD(i1:i2),'k','LineWidth',1.5)
-    end
+    plot(AyV(i1:i2),YDD(i1:i2),'Color',lineColor,'LineWidth',2)
 end
 
 %% Plot details
@@ -391,8 +398,9 @@ ymax = max(MzMax);
 figure(1)
 box on
 grid on
-xlabel('Lateral acceleration, $a_y$ (g)')
-ylabel('Solution residue')
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Solution residue','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 
 figure(2)
 xlim([xmin xmax])
@@ -418,66 +426,75 @@ axis equal
 
 figure(3)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Front tyre normal load, $F_z$ (N)','Interpreter', 'latex', 'FontSize', 21);
-grid minor
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Front tyre normal load, $F_z$ (N)','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
+grid on
 box on
 
 figure(4)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Rear tyre normal load, $F_z$ (N)','Interpreter', 'latex', 'FontSize', 21);
-grid minor
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Rear tyre normal load, $F_z$ (N)','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
+grid on
 box on
 
 figure(5)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Front wheel longitudinal slip, $\kappa_f$','Interpreter', 'latex', 'FontSize', 21);
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Front wheel slip angle, $\alpha_f$ (deg)','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 figure(6)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Rear wheel longitudinal slip, $\kappa_r$','Interpreter', 'latex', 'FontSize', 21);
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Rear wheel slip angle, $\alpha_r$ (deg)','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 figure(7)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Front wheel slip angle, $\alpha_f$ (deg)','Interpreter', 'latex', 'FontSize', 21);
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Front wheel longitudinal slip, $\kappa_f$','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 figure(8)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Rear wheel slip angle, $\alpha_r$ (deg)','Interpreter', 'latex', 'FontSize', 21);
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Rear wheel longitudinal slip, $\kappa_r$','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 figure(9)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Front wheel side force, $F_y$ (N)','Interpreter', 'latex', 'FontSize', 21);
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Front wheel side force, $F_y$ (N)','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 figure(10)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Rear wheel side force, $F_y$ (N)','Interpreter', 'latex', 'FontSize', 21);
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Rear wheel side force, $F_y$ (N)','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 figure(11)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Side slip angle, $\beta$ (deg)','Interpreter', 'latex', 'FontSize', 21);
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Side slip angle, $\beta$ (deg)','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 figure(12)
 hold on
@@ -490,45 +507,51 @@ grid on
 
 figure(13)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Front tyre cornering stiffness, $C_{\alpha f}$','Interpreter', 'latex', 'FontSize', 21);
-grid minor
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Front tyre cornering stiffness, $C_{\alpha f}$','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
+grid on
 box on
 
 figure(14)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Rear tyre cornering stiffness, $C_{\alpha r}$','Interpreter', 'latex', 'FontSize', 21);
-grid minor
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Rear tyre cornering stiffness, $C_{\alpha r}$','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
+grid on
 box on
 
 figure(15)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Understeer coefficient, $K$','Interpreter', 'latex', 'FontSize', 21);
-grid minor
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Understeer coefficient, $K$','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
+grid on
 box on
 
 figure(16)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Control derivative, $C_{\delta}$','Interpreter', 'latex', 'FontSize', 21);
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Control derivative, $C_{\delta}$','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 figure(17)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Stability derivative, $C_{\phi}$','Interpreter', 'latex', 'FontSize', 21);
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Stability derivative, $C_{\phi}$','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 figure(18)
 xlim([xmin xmax])
-xlabel('Lateral acceleration, $a_y$ (g)','Interpreter', 'latex', 'FontSize', 21);
-ylabel('Yaw damping derivative, $C_r$','Interpreter', 'latex', 'FontSize', 21);
+xlabel('Normalized lateral acceleration','Interpreter', 'latex', 'FontSize', 21)
+ylabel('Yaw damping derivative, $C_r$','Interpreter', 'latex', 'FontSize', 21)
+set(gca, "TickLabelInterpreter", "latex", "FontSize", 17)
 box on
-grid minor
+grid on
 
 
 %timing

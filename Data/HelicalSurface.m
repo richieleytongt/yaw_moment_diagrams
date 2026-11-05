@@ -22,26 +22,31 @@ Nord.nord7  = [143, 188, 187]/ 255;
 Nord.nord8  = [136, 192, 208]/ 255;
 Nord.nord9  = [129, 161, 193]/ 255;
 Nord.nord10 = [94, 129, 172] / 255;
+Nord.nord11 = [191, 97, 106] / 255;
+Nord.nord12 = [235, 203, 139] / 255;    
+Nord.nord13 = [191, 144, 0] / 255;
+Nord.nord14 = [133, 153, 0] / 255;
+Nord.nord15 = [180, 142, 173] / 255;
 
 %% Parametric representation of an oblique helicoid
 
-mu      = 5*pi/180; % uphill angle
+mu      = 15*pi/180; % uphill angle
 phi     = 21*pi/180; % camber angle
 funx    = @(u,v) u.*cos(v).*cos(phi);
 funy    = @(u,v) -(u.*sin(v).*cos(phi));
 funz    = @(u,v) -(sin(mu)*v + u*sin(phi));
 
 figure(1);
-fsurf(funx,funy,funz,[0.5 1 0 2.5*pi],'EdgeColor',Nord.nord0,'FaceColor',Nord.nord4,'LineWidth',2,'MeshDensity',13)
+fsurf(funx,funy,funz,[85/3 115/3 0 2.5*pi],'EdgeColor',Nord.nord0,'FaceColor',Nord.nord4,'LineWidth',1,'MeshDensity',13)
 hold on
-fsurf(funx,funy,funz,[.74 .76 0 2.5*pi],'EdgeColor',Nord.nord8,'FaceColor',Nord.nord8,'LineWidth',3,'MeshDensity',1)
+fsurf(funx,funy,funz,[99/3 101/3 0 2.5*pi],'EdgeColor',Nord.nord11,'FaceColor',Nord.nord11,'LineWidth',3,'MeshDensity',15)
 % plot3([0 0],[0 0],[0 1.2],'k','LineWidth',2)
 % plot3(0,0,0,'kp','LineWidth',2)
 % plot3(0,0,1.2,'kp','LineWidth',2)
 % title('oblique helicoid')
-xlabel('Inertial X','Interpreter','latex','FontSize',21)
-ylabel('Inertial Y','Interpreter','latex','FontSize',21)
-zlabel('Inertial Z','Interpreter','latex','FontSize',21)
+xlabel('Inertial X (m)','Interpreter','latex','FontSize',21)
+ylabel('Inertial Y (m)','Interpreter','latex','FontSize',21)
+zlabel('Inertial Z (m)','Interpreter','latex','FontSize',21)
 set(gca,'ticklabelinterpreter','latex','FontSize',17)
 set(gca,'YDir','reverse')
 set(gca,'ZDir','reverse')
